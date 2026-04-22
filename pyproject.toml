@@ -1,0 +1,45 @@
+[project]
+name = "brickblade"
+version = "0.1.0"
+description = "Smart LEGO inventory + pricing app (Rebrickable/Brickset/BrickLink)."
+readme = "README.md"
+authors = [
+    { name = "jay sherman", email = "jsherman999@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.18.4",
+    "fastapi>=0.136.0",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.14.0",
+    "requests-oauthlib>=2.0.0",
+    "sqlalchemy>=2.0.49",
+    "typer>=0.24.1",
+    "uvicorn[standard]>=0.45.0",
+]
+
+[project.scripts]
+brickblade = "brickblade:main"
+
+[build-system]
+requires = ["uv_build>=0.9.21,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.20.2",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.15.11",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
