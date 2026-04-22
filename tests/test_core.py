@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
@@ -128,7 +128,7 @@ def test_pricing_uses_cache_when_fresh(fresh_db):
 def test_pricing_refreshes_when_stale(fresh_db):
     bl = FakeBrickLink({"avg_price": "500.0"})
     with session_scope() as s:
-        stale = datetime.now(timezone.utc) - timedelta(hours=100)
+        stale = datetime.now(UTC) - timedelta(hours=100)
         s.add(
             models.PriceSnapshot(
                 set_num="10294-1",

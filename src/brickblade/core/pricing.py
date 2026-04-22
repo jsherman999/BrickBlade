@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select
@@ -45,7 +45,7 @@ def _latest(session: Session, set_num: str, source: str, condition: str) -> Pric
 def _is_fresh(snap: PriceSnapshot | None, ttl_hours: int) -> bool:
     if snap is None or snap.fetched_at is None:
         return False
-    age = datetime.now(timezone.utc) - snap.fetched_at.replace(tzinfo=timezone.utc)
+    age = datetime.now(UTC) - snap.fetched_at.replace(tzinfo=UTC)
     return age < timedelta(hours=ttl_hours)
 
 
