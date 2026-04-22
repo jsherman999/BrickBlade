@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Weekly Rebrickable CSV refresh. Runs Sundays at 03:00 local time.
+  Install: same procedure as com.brickblade.api.plist.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.brickblade.refresh-catalog</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/uv</string>
+    <string>run</string>
+    <string>--project</string>
+    <string>PROJECT_DIR</string>
+    <string>brickblade</string>
+    <string>import-catalog</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>PROJECT_DIR</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>0</integer>
+    <key>Hour</key>
+    <integer>3</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>PROJECT_DIR/var/logs/refresh-catalog.stdout</string>
+
+  <key>StandardErrorPath</key>
+  <string>PROJECT_DIR/var/logs/refresh-catalog.stderr</string>
+</dict>
+</plist>

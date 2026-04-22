@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  BrickBlade FastAPI server, kept alive by launchd.
+
+  Install:
+    1. Edit PROJECT_DIR below to the absolute path of this checkout.
+    2. cp launchd/com.brickblade.api.plist ~/Library/LaunchAgents/
+    3. launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.brickblade.api.plist
+    4. launchctl kickstart -k gui/$(id -u)/com.brickblade.api
+    5. tail -f <PROJECT_DIR>/var/logs/api.stdout
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.brickblade.api</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/uv</string>
+    <string>run</string>
+    <string>--project</string>
+    <string>PROJECT_DIR</string>
+    <string>uvicorn</string>
+    <string>brickblade.api.app:app</string>
+    <string>--host</string>
+    <string>0.0.0.0</string>
+    <string>--port</string>
+    <string>8765</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>PROJECT_DIR</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>PROJECT_DIR/var/logs/api.stdout</string>
+
+  <key>StandardErrorPath</key>
+  <string>PROJECT_DIR/var/logs/api.stderr</string>
+</dict>
+</plist>

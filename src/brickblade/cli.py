@@ -49,5 +49,20 @@ def init_db() -> None:
     typer.echo("tables created")
 
 
+@app.command("refresh-prices")
+def refresh_prices(
+    stagger: float = typer.Option(2.0, help="Seconds to sleep between sets."),
+) -> None:
+    """Refresh prices for all owned sets."""
+    from brickblade.jobs.refresh_prices import run
+
+    result = run(stagger_seconds=stagger)
+    typer.echo(
+        f"owned={result.owned_sets} "
+        f"new_snapshots={result.snapshots_added} "
+        f"errors={result.errors}"
+    )
+
+
 if __name__ == "__main__":
     app()
