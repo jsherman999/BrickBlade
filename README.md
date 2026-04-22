@@ -29,7 +29,17 @@ iPhone (SwiftUI) ──► Mac mini (FastAPI + SQLite + launchd jobs) ──► 
 
 ## Status
 
-Research phase. Implementation hasn't started yet.
+Backend implemented. See [`DEPLOY.md`](DEPLOY.md) for setup on the Mac mini.
+
+- **Phase 0** — uv project scaffold
+- **Phase 1** — Rebrickable CSV catalog mirror (12 tables, sha256-diff reimports)
+- **Phase 2** — API clients (Rebrickable, Brickset, BrickLink OAuth1, UPCitemdb, Brickognize)
+- **Phase 3** — core lookup + TTL-cached pricing with append-only snapshots
+- **Phase 4** — FastAPI app with bearer auth, inventory CRUD, image identify, refresh
+- **Phase 5** — launchd plist templates + installer for api / catalog / prices jobs
+- **Phase 6** — Typer CLI: `health`, `init-db`, `import-catalog`, `refresh-prices`, `add`, `remove`, `list`, `lookup`, `value`, `serve`
+
+Remaining: SwiftUI iPhone client (separate Xcode project, separate repo).
 
 ## License
 
