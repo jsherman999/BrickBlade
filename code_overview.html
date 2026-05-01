@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BrickBlade Code Overview</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #18202a;
+        --muted: #5b6673;
+        --paper: #f7f4ee;
+        --panel: #ffffff;
+        --line: #d8dde4;
+        --blue: #2563eb;
+        --teal: #0f766e;
+        --green: #15803d;
+        --amber: #b45309;
+        --red: #b91c1c;
+        --violet: #6d28d9;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--paper);
+        line-height: 1.5;
+      }
+
+      header {
+        padding: 56px max(24px, calc((100vw - 1180px) / 2)) 34px;
+        background: #172033;
+        color: #fff;
+      }
+
+      header p {
+        max-width: 840px;
+        color: #dbe4f0;
+        font-size: 18px;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 28px 0 64px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.1;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(34px, 5vw, 62px);
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 28px;
+        margin-bottom: 14px;
+      }
+
+      h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      code {
+        padding: 2px 5px;
+        border-radius: 5px;
+        background: #eef2f7;
+        font-size: 0.92em;
+      }
+
+      section {
+        margin-top: 22px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 10px 24px rgba(24, 32, 42, 0.06);
+      }
+
+      .kicker {
+        margin-bottom: 6px;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .tag {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 5px 9px;
+        background: #fff;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .flow {
+        display: grid;
+        gap: 12px;
+      }
+
+      .flow-row {
+        display: grid;
+        grid-template-columns: 1fr 36px 1fr;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .node {
+        min-height: 74px;
+        border-left: 5px solid var(--blue);
+        border-radius: 8px;
+        background: #f8fafc;
+        padding: 12px;
+      }
+
+      .node.teal {
+        border-left-color: var(--teal);
+      }
+
+      .node.green {
+        border-left-color: var(--green);
+      }
+
+      .node.amber {
+        border-left-color: var(--amber);
+      }
+
+      .node.red {
+        border-left-color: var(--red);
+      }
+
+      .node.violet {
+        border-left-color: var(--violet);
+      }
+
+      .arrow {
+        text-align: center;
+        color: var(--muted);
+        font-weight: 900;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      th,
+      td {
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+        padding: 11px 12px;
+        text-align: left;
+      }
+
+      th {
+        background: #eef2f7;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      ul {
+        margin: 8px 0 0;
+        padding-left: 20px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      .schema {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .schema-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+        background: #fbfcfe;
+      }
+
+      .schema-card strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .callout {
+        border-left: 5px solid var(--amber);
+        border-radius: 8px;
+        background: #fff8eb;
+        padding: 14px 16px;
+      }
+
+      @media (max-width: 860px) {
+        .grid.two,
+        .grid.three,
+        .schema,
+        .flow-row {
+          grid-template-columns: 1fr;
+        }
+
+        .arrow {
+          transform: rotate(90deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <p class="kicker">Code overview</p>
+      <h1>BrickBlade</h1>
+      <p>
+        BrickBlade is a personal LEGO collection backend. It lets a client scan or type a set,
+        identify a box photo, look up catalog metadata, fetch sealed and used market prices, store
+        owned inventory, and keep historical price snapshots for collection value tracking.
+      </p>
+      <div class="tag-row">
+        <span class="tag">Python 3.12</span>
+        <span class="tag">FastAPI</span>
+        <span class="tag">Typer CLI</span>
+        <span class="tag">SQLAlchemy</span>
+        <span class="tag">SQLite WAL</span>
+        <span class="tag">httpx</span>
+        <span class="tag">launchd jobs</span>
+        <span class="tag">Rebrickable CSV mirror</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="grid two">
+        <article class="panel">
+          <p class="kicker">What the app does</p>
+          <h2>High-level behavior</h2>
+          <p>
+            The app is a backend service plus a matching command-line tool. The FastAPI server exposes
+            inventory, lookup, photo-identification, and refresh endpoints, while the Typer CLI exposes
+            the same core behaviors for local administration and smoke tests.
+          </p>
+          <p>
+            The lookup path starts with either a set number, a UPC/EAN barcode, or an uploaded image.
+            Once BrickBlade has a set number, it normalizes it into the Rebrickable/BrickLink
+            <code>number-variant</code> format, reads set metadata from the local SQLite catalog mirror,
+            and returns the freshest known prices.
+          </p>
+        </article>
+
+        <article class="panel">
+          <p class="kicker">Runtime stack</p>
+          <h2>Underlying services and software</h2>
+          <ul>
+            <li>No Redis, Celery, Postgres, Django, frontend build system, or long-running worker queue is used.</li>
+            <li>HTTP API uses <code>FastAPI</code> served by <code>uvicorn</code>, usually on port <code>8765</code>.</li>
+            <li>CLI uses <code>Typer</code> through the <code>brickblade</code> console script.</li>
+            <li>Persistent data is SQLite by default at <code>var/brickblade.db</code>, configured by <code>BRICKBLADE_DB_URL</code>.</li>
+            <li>Database access uses <code>SQLAlchemy</code>; SQLite runs with WAL, foreign keys, and normal synchronous mode.</li>
+            <li>HTTP clients use <code>httpx</code>; BrickLink signing uses OAuth1 via <code>oauthlib</code>.</li>
+            <li>Recurring production tasks are macOS <code>launchd</code> agents, not an in-app scheduler.</li>
+            <li>Configuration comes from environment variables and <code>.env</code> through <code>pydantic-settings</code>.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="panel">
+        <p class="kicker">Call flow</p>
+        <h2>Main lookup path</h2>
+        <div class="flow">
+          <div class="flow-row">
+            <div class="node">
+              <h3>Client entry</h3>
+              <p>iPhone client, curl, or CLI calls <code>/api/lookup</code> or <code>brickblade lookup</code>.</p>
+            </div>
+            <div class="arrow">&rarr;</div>
+            <div class="node teal">
+              <h3>Auth and dependencies</h3>
+              <p><code>api.deps</code> verifies the bearer token, opens a DB session, and creates upstream clients.</p>
+            </div>
+          </div>
+          <div class="flow-row">
+            <div class="node green">
+              <h3>Resolve set number</h3>
+              <p><code>core.lookup.resolve_barcode()</code> asks Brickset first, then UPCitemdb when only a barcode is provided.</p>
+            </div>
+            <div class="arrow">&rarr;</div>
+            <div class="node amber">
+              <h3>Read catalog mirror</h3>
+              <p><code>core.sets.get_metadata()</code> joins <code>catalog_sets</code> to <code>catalog_themes</code> in local SQLite.</p>
+            </div>
+          </div>
+          <div class="flow-row">
+            <div class="node violet">
+              <h3>Fetch or reuse prices</h3>
+              <p><code>core.pricing.get_or_refresh()</code> uses cached snapshots until the TTL expires, then calls Brickset and BrickLink.</p>
+            </div>
+            <div class="arrow">&rarr;</div>
+            <div class="node red">
+              <h3>Return result</h3>
+              <p>The API and CLI receive one <code>LookupResult</code>: normalized set number, metadata, prices, and source list.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="kicker">API surface</p>
+        <h2>HTTP routes</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>Method</th>
+              <th>Handler path</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/api/health</code></td>
+              <td>GET</td>
+              <td><code>routes.health()</code></td>
+              <td>Public health check returning status and app version.</td>
+            </tr>
+            <tr>
+              <td><code>/api/lookup</code></td>
+              <td>POST</td>
+              <td><code>routes.lookup()</code></td>
+              <td>Authenticated lookup by <code>set_num</code> or <code>barcode</code>; returns metadata and price snapshots.</td>
+            </tr>
+            <tr>
+              <td><code>/api/identify-image</code></td>
+              <td>POST</td>
+              <td><code>routes.identify_image()</code></td>
+              <td>Authenticated image upload to Brickognize; returns likely LEGO set candidates.</td>
+            </tr>
+            <tr>
+              <td><code>/api/inventory</code></td>
+              <td>GET</td>
+              <td><code>routes.list_inventory()</code></td>
+              <td>Authenticated list of owned inventory rows, newest first.</td>
+            </tr>
+            <tr>
+              <td><code>/api/inventory</code></td>
+              <td>POST</td>
+              <td><code>routes.add_inventory()</code></td>
+              <td>Adds an owned set with quantity, condition, and optional notes.</td>
+            </tr>
+            <tr>
+              <td><code>/api/inventory/&lt;item_id&gt;</code></td>
+              <td>DELETE</td>
+              <td><code>routes.remove_inventory()</code></td>
+              <td>Deletes one inventory row by local database id.</td>
+            </tr>
+            <tr>
+              <td><code>/api/refresh-now</code></td>
+              <td>POST</td>
+              <td><code>routes.refresh_now()</code></td>
+              <td>Forces a price refresh for every distinct owned set and reports new snapshot count.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="grid two">
+        <article class="panel">
+          <p class="kicker">Backend modules</p>
+          <h2>What each major Python part does</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Responsibility</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>src/brickblade/api/app.py</code></td>
+                <td>Creates the FastAPI app, creates database tables, and registers routes.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/api/routes.py</code></td>
+                <td>HTTP route handlers for health, lookup, image identification, inventory CRUD, and forced refresh.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/api/deps.py</code></td>
+                <td>FastAPI dependency providers for auth, DB sessions, Brickset, BrickLink, UPCitemdb, and Brickognize clients.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/cli.py</code></td>
+                <td>Typer commands for setup, catalog import, price refresh, inventory management, lookup, value totals, and serving.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/core/service.py</code></td>
+                <td>Central orchestrator that turns barcode or set number input into a <code>LookupResult</code>.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/core/lookup.py</code></td>
+                <td>Barcode resolution strategy: Brickset official lookup first, UPCitemdb title parsing second.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/core/sets.py</code></td>
+                <td>Set-number normalization and local catalog metadata lookup.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/core/pricing.py</code></td>
+                <td>Price cache policy, TTL freshness checks, upstream price fetches, and append-only snapshot writes.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/core/schemas.py</code></td>
+                <td>Pydantic response models shared by API and CLI tests.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/db/models.py</code></td>
+                <td>SQLAlchemy table definitions for the Rebrickable mirror, owned inventory, prices, and import logs.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/db/session.py</code></td>
+                <td>SQLAlchemy engine/session lifecycle, table creation, transactions, and SQLite pragmas.</td>
+              </tr>
+              <tr>
+                <td><code>src/brickblade/jobs/*.py</code></td>
+                <td>Longer-running catalog and price refresh jobs used by CLI and launchd.</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="panel">
+          <p class="kicker">Core service functions</p>
+          <h2>Important internal behavior</h2>
+          <ul>
+            <li><code>normalize_set_num()</code> converts <code>10294</code> to <code>10294-1</code> but leaves explicit variants intact.</li>
+            <li><code>lookup_set()</code> is the shared API/CLI path, so behavior stays aligned across both interfaces.</li>
+            <li><code>get_or_refresh()</code> treats the <code>prices</code> table as both cache and history; refreshes append new rows rather than overwriting old rows.</li>
+            <li><code>session_scope()</code> commits successful operations and rolls back failed ones, including API requests and job chunks.</li>
+            <li><code>request_with_retry()</code> retries transient network problems, 429s, and 5xx responses for all external clients.</li>
+            <li><code>refresh_prices.run()</code> staggers requests between owned sets to be polite to upstream APIs.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="panel">
+        <p class="kicker">Data model</p>
+        <h2>SQLite tables</h2>
+        <div class="schema">
+          <div class="schema-card">
+            <strong><code>catalog_sets</code></strong>
+            <p>Local Rebrickable set catalog: set number, name, year, theme id, part count, and image URL.</p>
+          </div>
+          <div class="schema-card">
+            <strong><code>catalog_themes</code></strong>
+            <p>Theme hierarchy used to show friendly theme names with set metadata.</p>
+          </div>
+          <div class="schema-card">
+            <strong><code>catalog_parts</code>, <code>catalog_colors</code></strong>
+            <p>Part and color reference data mirrored from Rebrickable for future part-level inventory work.</p>
+          </div>
+          <div class="schema-card">
+            <strong><code>catalog_inventories</code></strong>
+            <p>Rebrickable inventory version rows connecting sets to their component inventory records.</p>
+          </div>
+          <div class="schema-card">
+            <strong><code>catalog_inventory_parts</code></strong>
+            <p>Part quantities, colors, spare flags, and image URLs for each mirrored set inventory.</p>
+          </div>
+          <div class="schema-card">
+            <strong><code>catalog_inventory_sets</code>, <code>catalog_inventory_minifigs</code></strong>
+            <p>Sub-set and minifigure contents for larger set inventories.</p>
+          </div>
+          <div class="schema-card">
+            <strong><code>inventory</code></strong>
+            <p>BrickBlade-owned rows: set number, quantity, condition, notes, and creation timestamp.</p>
+          </div>
+          <div class="schema-card">
+            <strong><code>prices</code></strong>
+            <p>Append-only price history with source, condition, guide type, currency, average/min/max, quantity, raw JSON, and fetch time.</p>
+          </div>
+          <div class="schema-card">
+            <strong><code>catalog_import_log</code></strong>
+            <p>CSV import diagnostics and idempotency: file name, row count, sha256 digest, and import timestamp.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid two">
+        <article class="panel">
+          <p class="kicker">Jobs</p>
+          <h2>Catalog and price refreshes</h2>
+          <ul>
+            <li><code>brickblade import-catalog</code> downloads Rebrickable <code>.csv.gz</code> files from their CDN.</li>
+            <li>Each CSV is hashed with sha256; unchanged files are skipped unless <code>--force</code> is used.</li>
+            <li>Changed catalog tables use a replace-all import strategy inside a transaction, then archive the raw CSV under <code>var/rebrickable-archive/&lt;date&gt;</code>.</li>
+            <li><code>brickblade refresh-prices</code> finds distinct owned set numbers, forces lookups, and appends fresh price rows.</li>
+            <li><code>launchd/install.sh</code> installs an always-on API agent, a Sunday 03:00 catalog refresh, and a nightly 04:00 price refresh.</li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <p class="kicker">Configuration</p>
+          <h2>Environment variables</h2>
+          <ul>
+            <li><code>BRICKBLADE_BEARER_TOKEN</code>: shared API token sent as <code>Authorization: Bearer ...</code>.</li>
+            <li><code>BRICKBLADE_DB_URL</code>: SQLAlchemy database URL, defaulting to <code>sqlite:///./var/brickblade.db</code>.</li>
+            <li><code>BRICKBLADE_DATA_DIR</code>: directory for downloads, archives, logs, and default SQLite storage.</li>
+            <li><code>BRICKBLADE_PRICE_TTL_HOURS</code>: cache freshness window before pricing calls are made again.</li>
+            <li><code>BRICKSET_KEY</code> and optional <code>BRICKSET_USERNAME</code>/<code>BRICKSET_PASSWORD</code>: Brickset API access.</li>
+            <li><code>BL_CONSUMER_KEY</code>, <code>BL_CONSUMER_SECRET</code>, <code>BL_TOKEN</code>, <code>BL_TOKEN_SECRET</code>: BrickLink OAuth1 credentials.</li>
+            <li><code>REBRICKABLE_KEY</code>: configured for future API calls; the current catalog mirror uses public CSV downloads.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="panel">
+        <p class="kicker">External calls</p>
+        <h2>What talks to the network</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Caller</th>
+              <th>Service</th>
+              <th>Used for</th>
+              <th>Fallback behavior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>jobs.import_catalog._download()</code></td>
+              <td>Rebrickable CDN</td>
+              <td>Daily catalog CSV mirror for sets, themes, parts, colors, inventories, minifigs, and related tables.</td>
+              <td>Failed downloads raise; unchanged successful downloads are skipped by sha256.</td>
+            </tr>
+            <tr>
+              <td><code>BricksetClient.find_by_barcode()</code></td>
+              <td>Brickset API v3</td>
+              <td>Official barcode-to-set lookup when a UPC/EAN is scanned.</td>
+              <td>Falls back to UPCitemdb barcode title parsing.</td>
+            </tr>
+            <tr>
+              <td><code>BricksetClient.find_by_set_number()</code></td>
+              <td>Brickset API v3</td>
+              <td>Sealed/current retail-ish price data from Brickset response fields.</td>
+              <td>Logs warning and returns any existing cached snapshot if available.</td>
+            </tr>
+            <tr>
+              <td><code>BrickLinkClient.get_price_guide()</code></td>
+              <td>BrickLink API</td>
+              <td>Used-sold market guide data for sets, signed with OAuth1 static tokens.</td>
+              <td>Logs warning and returns any existing cached snapshot if available.</td>
+            </tr>
+            <tr>
+              <td><code>UpcItemDbClient.find_lego_set_number()</code></td>
+              <td>UPCitemdb trial API</td>
+              <td>Barcode fallback when Brickset does not resolve the code.</td>
+              <td>Returns no match if the title is not LEGO or no set number can be parsed.</td>
+            </tr>
+            <tr>
+              <td><code>BrickognizeClient.predict_set()</code></td>
+              <td>Brickognize API</td>
+              <td>Image recognition for box-photo identification.</td>
+              <td>Request failure propagates to the API as an error response.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="grid two">
+        <article class="panel">
+          <p class="kicker">CLI</p>
+          <h2>Local commands</h2>
+          <ul>
+            <li><code>brickblade health</code>: prints paths and whether API credentials are configured.</li>
+            <li><code>brickblade init-db</code>: creates tables idempotently.</li>
+            <li><code>brickblade import-catalog</code>: downloads and imports Rebrickable CSV data.</li>
+            <li><code>brickblade refresh-prices</code>: refreshes all owned-set price snapshots.</li>
+            <li><code>brickblade add</code>, <code>remove</code>, <code>list</code>: manage local inventory.</li>
+            <li><code>brickblade lookup</code>: lookup by set number or barcode from the terminal.</li>
+            <li><code>brickblade value</code>: sums latest known average prices across owned sets.</li>
+            <li><code>brickblade serve</code>: starts the FastAPI server in the foreground.</li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <p class="kicker">Testing</p>
+          <h2>How behavior is verified</h2>
+          <ul>
+            <li><code>tests/test_core.py</code> covers set-number normalization, barcode resolution, cache TTL behavior, forced refreshes, and lookup orchestration.</li>
+            <li><code>tests/test_api.py</code> uses FastAPI dependency overrides so API tests do not call real upstream services.</li>
+            <li><code>tests/test_import_catalog.py</code> exercises CSV import behavior with controlled data.</li>
+            <li><code>tests/test_clients.py</code> checks client request construction and retry-adjacent behavior using fake transports.</li>
+            <li>Most tests use temporary SQLite databases by overriding <code>BRICKBLADE_DB_URL</code> and clearing cached settings.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="panel">
+        <p class="kicker">Under the covers</p>
+        <h2>Operational notes</h2>
+        <div class="callout">
+          <p>
+            The local Rebrickable mirror is the app's source of truth for catalog metadata. Live APIs
+            are used for identification and pricing, but a set still has to exist in the local mirror
+            before <code>lookup_set()</code> returns a successful result.
+          </p>
+        </div>
+        <ul>
+          <li>API auth is intentionally simple: every protected route compares the request header to one configured bearer token.</li>
+          <li>Database tables are created automatically at app startup and by setup/job commands via <code>create_all()</code>.</li>
+          <li>Price data is never updated in place; each fetch appends a row so value history comes for free.</li>
+          <li>The default deployment expects a Mac mini reachable from the iPhone over Tailscale.</li>
+          <li>The SwiftUI iPhone client described in the README is not part of this repo yet; this repo is the backend and CLI.</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
