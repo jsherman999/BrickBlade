@@ -8,11 +8,13 @@ Authorization header.
 
 from __future__ import annotations
 
+import csv
+import io
 from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import delete as sa_delete
 from sqlalchemy import select
@@ -48,6 +50,105 @@ def _set_session_cookie(token: str, target: str = "/") -> RedirectResponse:
     return resp
 
 
+def _thumb_url(img_url: str | None) -> str | None:
+    """Rebrickable serves 140x140 thumbs at /media/thumbs/sets/<num>.jpg/140x140p.jpg.
+
+    ~5KB instead of ~140KB for the full image. Returns None if input is None
+    or doesn't match the expected /media/sets/ pattern (e.g. external URLs).
+    """
+    if not img_url or "/media/sets/" not in img_url:
+        return img_url
+    return img_url.replace("/media/sets/", "/media/thumbs/sets/") + "/140x140p.jpg"
+
+
+_SORTS = {
+    "added": OwnedSet.created_at.desc(),
+    "set": OwnedSet.set_num.asc(),
+    "qty": OwnedSet.quantity.desc(),
+    "name": Set.name.asc(),
+    "theme": Theme.name.asc(),
+    # "value" is computed in Python after the price lookup; handled separately.
+}
+
+
+def _build_inventory_rows(
+    db: Session, sort: str, theme_filter: str
+) -> tuple[list[dict], float, list[tuple[str, dict]], list[str]]:
+    """Shared between /  and /export.csv. Returns (rows, total, theme_summary, all_themes)."""
+    q = (
+        select(OwnedSet, Set.name, Set.img_url, Set.year, Set.num_parts, Theme.name)
+        .join(Set, Set.set_num == OwnedSet.set_num, isouter=True)
+        .join(Theme, Theme.id == Set.theme_id, isouter=True)
+    )
+    if theme_filter:
+        q = q.where(Theme.name == theme_filter)
+    if sort in _SORTS:
+        q = q.order_by(_SORTS[sort])
+    else:
+        q = q.order_by(_SORTS["added"])
+
+    rows: list[dict] = []
+    total = 0.0
+    for owned, set_name, img_url, year, num_parts, theme_name in db.execute(q).all():
+        snap = db.execute(
+            select(PriceSnapshot)
+            .where(PriceSnapshot.set_num == owned.set_num)
+            .where(PriceSnapshot.avg_price.isnot(None))
+            .order_by(PriceSnapshot.fetched_at.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        price = float(snap.avg_price) if snap and snap.avg_price else None
+        line = (price or 0.0) * owned.quantity
+        total += line
+        rows.append(
+            {
+                "id": owned.id,
+                "set_num": owned.set_num,
+                "name": set_name,
+                "theme_name": theme_name,
+                "year": year,
+                "num_parts": num_parts,
+                "img_url": img_url,
+                "thumb_url": _thumb_url(img_url),
+                "quantity": owned.quantity,
+                "condition": owned.condition,
+                "price": price,
+                "line": line,
+                "created_at": owned.created_at,
+            }
+        )
+
+    if sort == "value":
+        rows.sort(key=lambda r: r["line"], reverse=True)
+
+    # Per-theme totals from the (already filtered) rows so the breakdown
+    # reflects whatever the user is currently looking at.
+    theme_totals: dict[str, dict] = {}
+    for r in rows:
+        t = r["theme_name"] or "(unknown)"
+        bucket = theme_totals.setdefault(t, {"count": 0, "total": 0.0})
+        bucket["count"] += r["quantity"]
+        bucket["total"] += r["line"]
+    theme_summary = sorted(
+        theme_totals.items(), key=lambda kv: kv[1]["total"], reverse=True
+    )
+
+    # Full theme universe (ignoring current filter) for the dropdown.
+    all_themes = [
+        t
+        for (t,) in db.execute(
+            select(Theme.name)
+            .join(Set, Set.theme_id == Theme.id)
+            .join(OwnedSet, OwnedSet.set_num == Set.set_num)
+            .distinct()
+            .order_by(Theme.name)
+        ).all()
+        if t
+    ]
+
+    return rows, total, theme_summary, all_themes
+
+
 # ---------- auth ----------
 
 
@@ -79,45 +180,58 @@ def logout():
 
 @router.get("/", dependencies=[Depends(require_web_session)])
 def home(request: Request, db: Session = Depends(get_db)):
-    q = (
-        select(OwnedSet, Set.name, Theme.name)
-        .join(Set, Set.set_num == OwnedSet.set_num, isouter=True)
-        .join(Theme, Theme.id == Set.theme_id, isouter=True)
-        .order_by(OwnedSet.created_at.desc())
-    )
-    rows: list[dict] = []
-    total = 0.0
-    for owned, set_name, theme_name in db.execute(q).all():
-        snap = db.execute(
-            select(PriceSnapshot)
-            .where(PriceSnapshot.set_num == owned.set_num)
-            .where(PriceSnapshot.avg_price.isnot(None))
-            .order_by(PriceSnapshot.fetched_at.desc())
-            .limit(1)
-        ).scalar_one_or_none()
-        price = float(snap.avg_price) if snap and snap.avg_price else None
-        line = (price or 0.0) * owned.quantity
-        total += line
-        rows.append(
-            {
-                "id": owned.id,
-                "set_num": owned.set_num,
-                "name": set_name,
-                "theme_name": theme_name,
-                "quantity": owned.quantity,
-                "condition": owned.condition,
-                "price": price,
-                "line": line,
-            }
-        )
+    sort = request.query_params.get("sort", "added")
+    theme_filter = request.query_params.get("theme", "")
+    rows, total, theme_summary, all_themes = _build_inventory_rows(db, sort, theme_filter)
     return TEMPLATES.TemplateResponse(
         request,
         "inventory.html",
         {
             "rows": rows,
             "total": total,
+            "theme_summary": theme_summary,
+            "all_themes": all_themes,
+            "sort": sort,
+            "theme_filter": theme_filter,
             "msg": request.query_params.get("msg"),
             "err": request.query_params.get("err"),
+        },
+    )
+
+
+@router.get("/export.csv", dependencies=[Depends(require_web_session)])
+def export_csv(request: Request, db: Session = Depends(get_db)):
+    sort = request.query_params.get("sort", "added")
+    theme_filter = request.query_params.get("theme", "")
+    rows, total, _, _ = _build_inventory_rows(db, sort, theme_filter)
+
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(
+        [
+            "set_num", "name", "theme", "year", "num_parts",
+            "quantity", "condition", "latest_avg_price", "line_total",
+            "added_at",
+        ]
+    )
+    for r in rows:
+        w.writerow(
+            [
+                r["set_num"], r["name"] or "", r["theme_name"] or "",
+                r["year"] or "", r["num_parts"] or "",
+                r["quantity"], r["condition"],
+                f"{r['price']:.2f}" if r["price"] is not None else "",
+                f"{r['line']:.2f}",
+                r["created_at"].isoformat() if r["created_at"] else "",
+            ]
+        )
+    w.writerow([])
+    w.writerow(["TOTAL", "", "", "", "", "", "", "", f"{total:.2f}", ""])
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": 'attachment; filename="brickblade-inventory.csv"'
         },
     )
 
