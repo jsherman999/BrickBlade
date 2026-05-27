@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block title %}{{ meta.name }} &mdash; BrickBlade{% endblock %}
 {% block content %}
+{% if owned %}
+<div style="background:var(--bb-yellow);color:#111;padding:0.8rem 1rem;border-radius:0.3rem;margin-bottom:1rem;border-left:6px solid var(--bb-red);">
+  <strong style="font-family:'Russo One',sans-serif;font-size:1.05rem;letter-spacing:0.04em;">&#9888; ALREADY IN INVENTORY</strong><br>
+  {% set qty_total = owned|sum(attribute='quantity') %}
+  You own <strong>{{ qty_total }}</strong> &mdash;
+  {% for o in owned %}{{ o.quantity }} {{ o.condition }} (added {{ o.created_at.strftime('%Y-%m-%d') }}){% if not loop.last %}, {% endif %}{% endfor %}.
+  <a href="/" style="color:#111;text-decoration:underline;">View inventory</a>
+</div>
+{% endif %}
 <hgroup>
   <h2>{{ meta.name }}</h2>
   <p>{{ meta.set_num }} &middot; {{ meta.theme_name or '?' }} &middot; {{ meta.year or '?' }} &middot; {{ meta.num_parts or '?' }} parts</p>

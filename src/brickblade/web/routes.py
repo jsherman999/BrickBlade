@@ -61,6 +61,20 @@ def _thumb_url(img_url: str | None) -> str | None:
     return img_url.replace("/media/sets/", "/media/thumbs/sets/") + "/140x140p.jpg"
 
 
+def _owned_for(db: Session, set_num: str) -> list[OwnedSet]:
+    """Every OwnedSet row for `set_num` (may differ by condition). Used so the
+    lookup + detail pages can warn 'you already own this' when shopping."""
+    return (
+        db.execute(
+            select(OwnedSet)
+            .where(OwnedSet.set_num == set_num)
+            .order_by(OwnedSet.created_at.desc())
+        )
+        .scalars()
+        .all()
+    )
+
+
 _SORTS = {
     "added": OwnedSet.created_at.desc(),
     "set": OwnedSet.set_num.asc(),
@@ -268,7 +282,11 @@ def lookup_submit(
             {"err": f"Nothing found for '{q}'."},
             status_code=404,
         )
-    return TEMPLATES.TemplateResponse(request, "lookup_result.html", {"result": result})
+    return TEMPLATES.TemplateResponse(
+        request,
+        "lookup_result.html",
+        {"result": result, "owned": _owned_for(db, result.set_num)},
+    )
 
 
 # ---------- identify ----------
@@ -324,7 +342,9 @@ def set_detail(request: Request, set_num: str, db: Session = Depends(get_db)):
         .all()
     )
     return TEMPLATES.TemplateResponse(
-        request, "set_detail.html", {"meta": meta, "snapshots": snapshots}
+        request,
+        "set_detail.html",
+        {"meta": meta, "snapshots": snapshots, "owned": _owned_for(db, canonical)},
     )
 
 
