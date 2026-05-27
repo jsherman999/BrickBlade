@@ -1,20 +1,86 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}BrickBlade{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <style>
+  :root {
+    --bb-red: #D01012;
+    --bb-red-hover: #B00C0E;
+    --bb-yellow: #FFCF00;
+    --bb-blue: #006DB7;
+    --bb-green: #237D2C;
+    --bb-bg: #0E1117;
+    --bb-card: #1A1F2A;
+    --bb-text: #F2F2F2;
+  }
+  [data-theme="dark"] {
+    --pico-primary: var(--bb-red);
+    --pico-primary-hover: var(--bb-red-hover);
+    --pico-primary-background: var(--bb-red);
+    --pico-primary-hover-background: var(--bb-red-hover);
+    --pico-primary-border: var(--bb-red);
+    --pico-primary-hover-border: var(--bb-red-hover);
+    --pico-primary-focus: rgba(208, 16, 18, 0.35);
+    --pico-primary-inverse: #FFFFFF;
+    --pico-background-color: var(--bb-bg);
+    --pico-card-background-color: var(--bb-card);
+    --pico-card-sectioning-background-color: var(--bb-card);
+    --pico-color: var(--bb-text);
+    --pico-h1-color: var(--bb-yellow);
+    --pico-h2-color: var(--bb-yellow);
+    --pico-h3-color: var(--bb-text);
+    --pico-form-element-background-color: #161B23;
+    --pico-form-element-border-color: #2A3140;
+    --pico-form-element-focus-color: var(--bb-red);
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, nav strong, hgroup p strong, .brand {
+    font-family: "Russo One", "Arial Black", system-ui, sans-serif;
+    letter-spacing: 0.02em;
+  }
+  nav strong a { color: var(--bb-yellow); text-decoration: none; }
+  nav strong a:hover { color: var(--bb-red); }
+  nav a { text-decoration: none; }
+  nav a:hover { color: var(--bb-yellow); }
+
   .actions form { display: inline; margin: 0; }
   .actions button { padding: 0.2rem 0.5rem; margin: 0; font-size: 0.9rem; }
-  .flash { padding: 0.5rem 1rem; border-radius: 0.25rem; background: #1f3a1f; color: #ccffcc; margin-bottom: 1rem; }
-  .flash.err { background: #3a1f1f; color: #ffcccc; }
-  table { font-size: 0.9rem; }
-  .price { text-align: right; }
+  .flash {
+    padding: 0.6rem 1rem;
+    border-radius: 0.25rem;
+    background: var(--bb-green);
+    color: #FFFFFF;
+    margin-bottom: 1rem;
+    border-left: 4px solid #34B243;
+    font-weight: 500;
+  }
+  .flash.err {
+    background: var(--bb-red);
+    border-left-color: #FF4444;
+  }
+  table { font-size: 0.95rem; }
+  th { color: var(--bb-yellow); }
+  .price { text-align: right; font-variant-numeric: tabular-nums; }
   .muted { color: var(--pico-muted-color); }
   nav form { display: inline; margin: 0; }
   nav button { margin: 0; padding: 0.3rem 0.7rem; font-size: 0.9rem; }
+
+  /* Make the running total + price-of-interest pop in yellow */
+  hgroup p strong { color: var(--bb-yellow); font-size: 1.1em; }
+  td.price { color: var(--bb-text); }
+
+  /* Set-number links use LEGO blue so they don't fight the red primary */
+  a { color: #59B0E8; }
+  a:hover { color: var(--bb-yellow); }
+  nav strong a, nav strong a:hover { /* keep wordmark rule winning */ }
 </style>
 </head>
 <body>
