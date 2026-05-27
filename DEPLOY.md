@@ -41,6 +41,13 @@ uv run brickblade import-catalog          # ~30–60s, ~200MB of CSVs
 uv run brickblade health                  # verifies all three credential sets
 ```
 
+## 4a. Port
+
+The API listens on `8766`. (Port 8765 is taken on this Mac mini by an
+unrelated app; if you redeploy somewhere else, the only places to change
+are `launchd/com.brickblade.api.plist` and the `serve` default in
+`src/brickblade/cli.py`.)
+
 ## 5. Install launchd agents
 
 ```bash
@@ -54,7 +61,7 @@ Agents installed:
 
 | Label                            | When                 | What                                  |
 | -------------------------------- | -------------------- | ------------------------------------- |
-| `com.brickblade.api`             | `KeepAlive=true`     | uvicorn on `0.0.0.0:8765`             |
+| `com.brickblade.api`             | `KeepAlive=true`     | uvicorn on `0.0.0.0:8766`             |
 | `com.brickblade.refresh-catalog` | Sundays 03:00 local  | `brickblade import-catalog`           |
 | `com.brickblade.refresh-prices`  | Nightly 04:00 local  | `brickblade refresh-prices`           |
 
@@ -68,13 +75,13 @@ tail -f var/logs/*.stdout
 ## 6. Reach the mini from the iPhone (Tailscale)
 
 With Tailscale up on both devices the mini is reachable at
-`http://<mac-mini-hostname>.<tailnet>.ts.net:8765`. That hostname is
+`http://<mac-mini-hostname>.<tailnet>.ts.net:8766`. That hostname is
 what the iPhone client will use for the `API_BASE_URL` once it exists.
 
 For local-only testing from the same machine:
 
 ```bash
-curl -s http://localhost:8765/api/health | jq
+curl -s http://localhost:8766/api/health | jq
 ```
 
 ## 7. Smoke test (end-to-end)
@@ -83,13 +90,13 @@ curl -s http://localhost:8765/api/health | jq
 TOKEN="$(grep ^BRICKBLADE_BEARER_TOKEN .env | cut -d= -f2)"
 
 # Add the Titanic to inventory
-curl -s -X POST http://localhost:8765/api/inventory \
+curl -s -X POST http://localhost:8766/api/inventory \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"set_num":"10294-1","quantity":1,"condition":"sealed"}' | jq
 
 # Look it up (hits Brickset + BrickLink on cache miss, serves cache on hit)
-curl -s -X POST http://localhost:8765/api/lookup \
+curl -s -X POST http://localhost:8766/api/lookup \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"set_num":"10294-1"}' | jq

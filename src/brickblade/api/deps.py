@@ -39,7 +39,7 @@ def require_bearer(
 
 def get_clients(settings: Settings = Depends(get_settings)) -> Iterator[Clients]:
     brickset = (
-        BricksetClient(settings.brickset_key, settings.brickset_username)
+        BricksetClient(settings.brickset_key)
         if settings.brickset_key
         else None
     )

@@ -26,7 +26,7 @@
     <string>--host</string>
     <string>0.0.0.0</string>
     <string>--port</string>
-    <string>8765</string>
+    <string>8766</string>
   </array>
 
   <key>WorkingDirectory</key>

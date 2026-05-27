@@ -36,8 +36,10 @@ def health() -> None:
 @app.command("init-db")
 def init_db() -> None:
     """Create tables (idempotent)."""
+    from brickblade.config import get_settings
     from brickblade.db.session import create_all
 
+    get_settings().data_dir  # ensures parent dir exists before SQLite opens the file
     create_all()
     typer.echo("tables created")
 
@@ -245,7 +247,7 @@ def value(
 @app.command()
 def serve(
     host: str = "0.0.0.0",
-    port: int = 8765,
+    port: int = 8766,
 ) -> None:
     """Run the FastAPI server (foreground)."""
     import uvicorn
