@@ -38,8 +38,9 @@ Backend implemented. See [`DEPLOY.md`](DEPLOY.md) for setup on the Mac mini.
 - **Phase 4** — FastAPI app with bearer auth, inventory CRUD, image identify, refresh
 - **Phase 5** — launchd plist templates + installer for api / catalog / prices jobs
 - **Phase 6** — Typer CLI: `health`, `init-db`, `import-catalog`, `refresh-prices`, `add`, `remove`, `list`, `lookup`, `value`, `serve`
+- **Phase 7** — server-rendered web UI mounted at `/` (Jinja2 + Pico CSS, mobile-first, cookie auth). Lets any browser on the Tailnet (incl. iPhone Safari) use the full app — barcode lookup, image identify, inventory CRUD, price history — while the SwiftUI client is unbuilt.
 
-Remaining: SwiftUI iPhone client (separate Xcode project, separate repo).
+Remaining: SwiftUI iPhone client (separate Xcode project, separate repo). The web UI is a stand-in, not a replacement — once SwiftUI ships, both will share the same `/api/*` surface and bearer token.
 
 ## License
 

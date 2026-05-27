@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Lookup &mdash; BrickBlade{% endblock %}
+{% block content %}
+<h2>Lookup</h2>
+<p>Enter a set number (e.g. <code>10294</code>) or a barcode (e.g. <code>673419340335</code>).</p>
+<form method="post" action="/lookup">
+  <label>
+    Set number or barcode
+    <input type="text" name="query" required autofocus autocomplete="off" inputmode="numeric">
+  </label>
+  <label>
+    <input type="checkbox" name="force_refresh" value="1">
+    Force refresh (skip cache)
+  </label>
+  <button type="submit">Lookup</button>
+</form>
+<p class="muted">To ID a set from a box photo, use <a href="/identify">Identify by image</a>.</p>
+{% endblock %}

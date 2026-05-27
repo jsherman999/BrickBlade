@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Identify &mdash; BrickBlade{% endblock %}
+{% block content %}
+<h2>Identify by image</h2>
+<p>Snap or upload a photo of a LEGO box, minifig, or part. Powered by Brickognize. Takes a few seconds.</p>
+<form method="post" action="/identify" enctype="multipart/form-data">
+  <label>
+    Photo
+    <input type="file" name="file" accept="image/*" capture="environment" required>
+  </label>
+  <button type="submit">Identify</button>
+</form>
+{% endblock %}

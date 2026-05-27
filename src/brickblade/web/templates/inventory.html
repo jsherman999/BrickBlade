@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Inventory &mdash; BrickBlade{% endblock %}
+{% block content %}
+<hgroup>
+  <h2>Inventory</h2>
+  <p>{{ rows|length }} owned set{{ '' if rows|length == 1 else 's' }} &middot; total estimated value <strong>${{ "%.2f"|format(total) }}</strong></p>
+</hgroup>
+<form method="post" action="/refresh" style="margin-bottom:1rem">
+  <button class="secondary" type="submit">Refresh all prices now</button>
+</form>
+{% if rows %}
+<table>
+  <thead>
+    <tr>
+      <th>Set</th><th>Name</th><th>Qty</th><th>Cond</th>
+      <th class="price">Avg</th><th class="price">Line</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td><a href="/set/{{ r.set_num }}">{{ r.set_num }}</a></td>
+      <td>{{ r.name or '' }}<br><small class="muted">{{ r.theme_name or '' }}</small></td>
+      <td>{{ r.quantity }}</td>
+      <td>{{ r.condition }}</td>
+      <td class="price">
+        {% if r.price is not none %}${{ "%.2f"|format(r.price) }}
+        {% else %}<span class="muted">n/a</span>{% endif %}
+      </td>
+      <td class="price">${{ "%.2f"|format(r.line) }}</td>
+      <td class="actions">
+        <form method="post" action="/inventory/{{ r.id }}/delete"
+              onsubmit="return confirm('Remove {{ r.set_num }}?')">
+          <button class="contrast outline" type="submit" title="Remove">&times;</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No sets yet. <a href="/lookup">Look one up</a> or <a href="/identify">identify by image</a>.</p>
+{% endif %}
+{% endblock %}

@@ -84,6 +84,24 @@ For local-only testing from the same machine:
 curl -s http://localhost:8766/api/health | jq
 ```
 
+## 6a. Web UI (browser stand-in for the iPhone app)
+
+Open `http://<mac-mini-hostname>.<tailnet>.ts.net:8766/` from any browser
+on the Tailnet (including iPhone Safari). You'll be sent to `/login` —
+paste the same `BRICKBLADE_BEARER_TOKEN` from `.env`. The server sets an
+HttpOnly cookie good for a year. After that the UI exposes:
+
+- `/` — inventory list with per-set value and total
+- `/lookup` — type a set number or barcode
+- `/identify` — upload or snap a box photo (iPhone Safari opens the
+  camera directly via `accept="image/*" capture="environment"`)
+- `/set/<num>` — full price-snapshot history for one set
+- `+ Add to inventory` / `× remove` / `Refresh all prices now` buttons
+
+`/api/*` routes still accept the existing `Authorization: Bearer` header,
+so the SwiftUI client (when it ships) doesn't need to know about the
+cookie path.
+
 ## 7. Smoke test (end-to-end)
 
 ```bash

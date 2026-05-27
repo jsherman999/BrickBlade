@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.name }} &mdash; BrickBlade{% endblock %}
+{% block content %}
+<hgroup>
+  <h2>{{ meta.name }}</h2>
+  <p>{{ meta.set_num }} &middot; {{ meta.theme_name or '?' }} &middot; {{ meta.year or '?' }} &middot; {{ meta.num_parts or '?' }} parts</p>
+</hgroup>
+{% if meta.img_url %}
+<img src="{{ meta.img_url }}" alt="" style="max-width:200px;margin-bottom:1rem">
+{% endif %}
+<h3>Price history</h3>
+{% if snapshots %}
+<table>
+  <thead>
+    <tr>
+      <th>When</th><th>Source</th><th>Cond</th>
+      <th class="price">Avg</th><th class="price">Min</th><th class="price">Max</th><th class="price">Qty</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for s in snapshots %}
+    <tr>
+      <td><small>{{ s.fetched_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+      <td>{{ s.source }}</td>
+      <td>{{ s.condition }}</td>
+      <td class="price">{% if s.avg_price %}${{ "%.2f"|format(s.avg_price) }}{% else %}&mdash;{% endif %}</td>
+      <td class="price">{% if s.min_price %}${{ "%.2f"|format(s.min_price) }}{% else %}&mdash;{% endif %}</td>
+      <td class="price">{% if s.max_price %}${{ "%.2f"|format(s.max_price) }}{% else %}&mdash;{% endif %}</td>
+      <td class="price">{{ s.qty or '&mdash;' }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No price snapshots yet for this set.</p>
+{% endif %}
+<form method="post" action="/set/{{ meta.set_num }}/add" style="margin-top:1rem">
+  <button type="submit">Add to inventory (qty 1, sealed)</button>
+</form>
+<p><a href="/">&larr; Inventory</a></p>
+{% endblock %}

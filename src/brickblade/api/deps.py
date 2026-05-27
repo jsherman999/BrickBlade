@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from brickblade.clients.bricklink import BrickLinkClient
@@ -19,6 +19,16 @@ from brickblade.config import Settings, get_settings
 from brickblade.core.service import Clients
 from brickblade.db.session import session_scope
 
+SESSION_COOKIE = "bb_session"
+
+
+class AuthRedirect(Exception):
+    """Raised by web-route auth dep when the session cookie is missing/invalid.
+
+    The app exception handler converts this into a 303 to /login. Using an
+    exception (not a return value) lets us guard whole routes with Depends().
+    """
+
 
 def get_db() -> Iterator[Session]:
     with session_scope() as session:
@@ -26,15 +36,32 @@ def get_db() -> Iterator[Session]:
 
 
 def require_bearer(
+    request: Request,
     authorization: str | None = Header(default=None),
     settings: Settings = Depends(get_settings),
 ) -> None:
-    expected = f"Bearer {settings.brickblade_bearer_token}"
-    if not authorization or authorization != expected:
+    """Accept either Authorization: Bearer <token> or the bb_session cookie.
+
+    Header path is the canonical API auth (curl, SwiftUI). Cookie path lets the
+    server-rendered web UI use the same routes after /login sets the cookie.
+    """
+    token = settings.brickblade_bearer_token
+    header_ok = authorization == f"Bearer {token}"
+    cookie_ok = request.cookies.get(SESSION_COOKIE) == token
+    if not (header_ok or cookie_ok):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing bearer token",
+            detail="Invalid or missing credentials",
         )
+
+
+def require_web_session(
+    request: Request,
+    settings: Settings = Depends(get_settings),
+) -> None:
+    """Web-route guard: cookie only, redirects to /login on failure."""
+    if request.cookies.get(SESSION_COOKIE) != settings.brickblade_bearer_token:
+        raise AuthRedirect()
 
 
 def get_clients(settings: Settings = Depends(get_settings)) -> Iterator[Clients]:

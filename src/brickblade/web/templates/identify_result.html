@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Identify results &mdash; BrickBlade{% endblock %}
+{% block content %}
+<h2>Candidates</h2>
+{% if candidates %}
+<table>
+  <thead><tr><th>ID</th><th>Name</th><th>Type</th><th class="price">Score</th><th></th></tr></thead>
+  <tbody>
+  {% for c in candidates %}
+    <tr>
+      <td>{{ c.id }}</td>
+      <td>{{ c.name or '' }}</td>
+      <td>{{ c.type or '' }}</td>
+      <td class="price">{% if c.score is not none %}{{ "%.2f"|format(c.score) }}{% else %}&mdash;{% endif %}</td>
+      <td>
+        {% if c.type == 'set' %}
+        <form method="post" action="/lookup" style="margin:0">
+          <input type="hidden" name="query" value="{{ c.id }}">
+          <button type="submit">Look up</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No matches.</p>
+{% endif %}
+<p><a href="/identify">&larr; Try another image</a></p>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Log in &mdash; BrickBlade{% endblock %}
+{% block content %}
+<h2>Log in</h2>
+<p>Paste your <code>BRICKBLADE_BEARER_TOKEN</code> from <code>.env</code>.</p>
+<form method="post" action="/login">
+  <label>
+    Bearer token
+    <input type="password" name="token" required autofocus autocomplete="off">
+  </label>
+  <button type="submit">Log in</button>
+</form>
+{% endblock %}

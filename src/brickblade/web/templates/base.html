@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}BrickBlade{% endblock %}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+<style>
+  .actions form { display: inline; margin: 0; }
+  .actions button { padding: 0.2rem 0.5rem; margin: 0; font-size: 0.9rem; }
+  .flash { padding: 0.5rem 1rem; border-radius: 0.25rem; background: #1f3a1f; color: #ccffcc; margin-bottom: 1rem; }
+  .flash.err { background: #3a1f1f; color: #ffcccc; }
+  table { font-size: 0.9rem; }
+  .price { text-align: right; }
+  .muted { color: var(--pico-muted-color); }
+  nav form { display: inline; margin: 0; }
+  nav button { margin: 0; padding: 0.3rem 0.7rem; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<main class="container">
+  {% if request.cookies.get('bb_session') %}
+  <nav>
+    <ul><li><strong><a href="/">BrickBlade</a></strong></li></ul>
+    <ul>
+      <li><a href="/">Inventory</a></li>
+      <li><a href="/lookup">Lookup</a></li>
+      <li><a href="/identify">Identify</a></li>
+      <li><form method="post" action="/logout"><button class="secondary outline" type="submit">Log out</button></form></li>
+    </ul>
+  </nav>
+  {% endif %}
+  {% if msg %}<div class="flash">{{ msg }}</div>{% endif %}
+  {% if err %}<div class="flash err">{{ err }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>
