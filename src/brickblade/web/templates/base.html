@@ -71,7 +71,48 @@
   .price { text-align: right; font-variant-numeric: tabular-nums; }
   .muted { color: var(--pico-muted-color); }
   nav form { display: inline; margin: 0; }
-  nav button { margin: 0; padding: 0.3rem 0.7rem; font-size: 0.9rem; }
+  /* Make the Log out button look identical to the other nav text links. */
+  nav button.nav-linklike {
+    background: transparent;
+    border: none;
+    margin: 0;
+    padding: 0;
+    color: var(--pico-color);
+    font: inherit;
+    cursor: pointer;
+  }
+  nav button.nav-linklike:hover { color: var(--bb-yellow); }
+
+  /* Unified toolbar: all controls (button, select, link-as-button) share
+     the same height, padding, and outline treatment. */
+  .toolbar { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+  .toolbar form { margin: 0; }
+  .toolbar > * { margin: 0; }
+  .toolbar button,
+  .toolbar a[role="button"],
+  .toolbar select.toolbar-select {
+    margin: 0;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    height: auto;
+    min-height: 0;
+  }
+  .toolbar select.toolbar-select {
+    background-color: transparent;
+    border: 1px solid var(--pico-secondary-border, #4A5568);
+    color: var(--pico-color);
+    border-radius: var(--pico-border-radius, 0.25rem);
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 1.8rem;
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%),
+      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
 
   /* Make the running total + price-of-interest pop in yellow */
   hgroup p strong { color: var(--bb-yellow); font-size: 1.1em; }
@@ -92,7 +133,7 @@
       <li><a href="/">Inventory</a></li>
       <li><a href="/lookup">Lookup</a></li>
       <li><a href="/identify">Identify</a></li>
-      <li><form method="post" action="/logout"><button class="secondary outline" type="submit">Log out</button></form></li>
+      <li><form method="post" action="/logout"><button class="nav-linklike" type="submit">Log out</button></form></li>
     </ul>
   </nav>
   {% endif %}

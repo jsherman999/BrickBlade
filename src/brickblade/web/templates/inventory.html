@@ -12,22 +12,22 @@
   <p>{{ rows|length }} owned set{{ '' if rows|length == 1 else 's' }}{% if theme_filter %} in <strong>{{ theme_filter }}</strong>{% endif %} &middot; total estimated value <strong>${{ "%.2f"|format(total) }}</strong></p>
 </hgroup>
 
-<div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
-  <form method="post" action="/refresh" style="margin:0">
-    <button class="secondary" type="submit">Refresh all prices</button>
+<div class="toolbar">
+  <form method="post" action="/refresh">
+    <button class="secondary outline" type="submit">Refresh all prices</button>
   </form>
-  <form method="get" action="/" style="margin:0;display:flex;gap:0.3rem;align-items:center;">
+  <form method="get" action="/">
     <input type="hidden" name="sort" value="{{ sort }}">
-    <select name="theme" onchange="this.form.submit()" style="margin:0;padding:0.3rem 0.5rem;width:auto;">
+    <select name="theme" class="toolbar-select" onchange="this.form.submit()">
       <option value="">All themes</option>
       {% for t in all_themes %}
       <option value="{{ t }}" {% if t == theme_filter %}selected{% endif %}>{{ t }}</option>
       {% endfor %}
     </select>
-    {% if theme_filter %}<a href="/?sort={{ sort }}" style="font-size:0.85rem">clear</a>{% endif %}
   </form>
   <a href="/export.csv{% if sort != 'added' or theme_filter %}?sort={{ sort }}{% if theme_filter %}&theme={{ theme_filter|urlencode }}{% endif %}{% endif %}"
-     role="button" class="secondary outline" style="margin:0;padding:0.4rem 0.8rem;">Export CSV</a>
+     role="button" class="secondary outline">Export CSV</a>
+  {% if theme_filter %}<a href="/?sort={{ sort }}" class="muted" style="font-size:0.85rem;">clear filter</a>{% endif %}
 </div>
 
 {% if theme_summary and not theme_filter %}

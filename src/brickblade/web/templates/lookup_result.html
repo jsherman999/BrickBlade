@@ -44,6 +44,7 @@
 <p>No prices available yet.</p>
 {% endif %}
 <form method="post" action="/set/{{ result.set_num }}/add" style="margin-top:1rem">
+  <input type="hidden" name="from" value="lookup">
   <label>
     Quantity
     <input type="number" name="quantity" value="1" min="1" style="max-width:6rem">

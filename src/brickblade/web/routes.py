@@ -253,9 +253,28 @@ def export_csv(request: Request, db: Session = Depends(get_db)):
 # ---------- lookup ----------
 
 
+def _owned_index(db: Session) -> dict[str, int]:
+    """Map of set_num → total quantity owned. Embedded in /lookup so the form
+    can flag 'already owned' as the user types without a network round-trip."""
+    pairs = db.execute(
+        select(OwnedSet.set_num, OwnedSet.quantity)
+    ).all()
+    out: dict[str, int] = {}
+    for set_num, qty in pairs:
+        out[set_num] = out.get(set_num, 0) + (qty or 0)
+    return out
+
+
 @router.get("/lookup", dependencies=[Depends(require_web_session)])
-def lookup_form(request: Request):
-    return TEMPLATES.TemplateResponse(request, "lookup.html", {})
+def lookup_form(request: Request, db: Session = Depends(get_db)):
+    return TEMPLATES.TemplateResponse(
+        request,
+        "lookup.html",
+        {
+            "owned_index": _owned_index(db),
+            "msg": request.query_params.get("msg"),
+        },
+    )
 
 
 @router.post("/lookup", dependencies=[Depends(require_web_session)])
@@ -356,11 +375,15 @@ def add_to_inventory(
     set_num: str,
     quantity: Annotated[int, Form()] = 1,
     condition: Annotated[str, Form()] = "sealed",
+    from_: Annotated[str | None, Form(alias="from")] = None,
     db: Session = Depends(get_db),
 ):
     canonical = normalize_set_num(set_num)
     db.add(OwnedSet(set_num=canonical, quantity=quantity, condition=condition))
-    return RedirectResponse(f"/?msg=Added+{canonical}", status_code=303)
+    # Batch-entry flow: stay on /lookup after each add so the user can keep
+    # scanning. Otherwise default to inventory.
+    target = "/lookup" if from_ == "lookup" else "/"
+    return RedirectResponse(f"{target}?msg=Added+{canonical}", status_code=303)
 
 
 @router.post("/inventory/{item_id}/delete", dependencies=[Depends(require_web_session)])

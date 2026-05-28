@@ -3,16 +3,119 @@
 {% block content %}
 <h2>Lookup</h2>
 <p>Enter a set number (e.g. <code>10294</code>) or a barcode (e.g. <code>673419340335</code>).</p>
+
 <form method="post" action="/lookup">
-  <label>
-    Set number or barcode
-    <input type="text" name="query" required autofocus autocomplete="off" inputmode="numeric">
-  </label>
+  <div style="position:relative;">
+    <label for="query-input">Set number or barcode</label>
+    <input id="query-input" type="text" name="query" required autofocus
+           autocomplete="off" inputmode="numeric">
+    <div id="owned-flag" aria-live="polite"
+         style="display:none;margin-top:-0.6rem;margin-bottom:0.8rem;
+                background:var(--bb-yellow);color:#111;
+                padding:0.35rem 0.7rem;border-radius:0.25rem;
+                border-left:4px solid var(--bb-red);font-size:0.9rem;
+                font-family:'Russo One',sans-serif;letter-spacing:0.03em;">
+      <span id="owned-flag-text"></span>
+    </div>
+  </div>
+
   <label>
     <input type="checkbox" name="force_refresh" value="1">
     Force refresh (skip cache)
   </label>
   <button type="submit">Lookup</button>
 </form>
+
+<div id="recent-wrap" style="margin-top:1rem;display:none;">
+  <small class="muted">Added this session (tap to view):</small>
+  <div id="recent-chips" style="display:flex;gap:0.4rem;overflow-x:auto;
+                                 padding:0.5rem 0;white-space:nowrap;
+                                 -webkit-overflow-scrolling:touch;">
+  </div>
+</div>
+
 <p class="muted">To ID a set from a box photo, use <a href="/identify">Identify by image</a>.</p>
+
+<script>
+  // Owned-set index injected from the server, so the "already owned" check
+  // is local — no network on every keystroke.
+  const OWNED = {{ owned_index | tojson }};
+
+  // Normalize the input the same way the server does: bare 4-5 digit set
+  // numbers get the "-1" variant suffix; anything with a dash is kept verbatim.
+  function normalize(v) {
+    v = (v || "").trim();
+    if (!v) return "";
+    if (v.includes("-")) return v;
+    if (/^\d+$/.test(v)) return v + "-1";
+    return v;
+  }
+
+  const input = document.getElementById("query-input");
+  const flag = document.getElementById("owned-flag");
+  const flagText = document.getElementById("owned-flag-text");
+
+  function updateOwnedFlag() {
+    const norm = normalize(input.value);
+    // Don't flag while user is mid-typing a long barcode (>=11 digits = barcode lookup)
+    const looksLikeBarcode = /^\d{11,}$/.test(input.value.trim());
+    if (norm && !looksLikeBarcode && OWNED[norm]) {
+      flagText.textContent = "⚠ OWNED × " + OWNED[norm] + " (" + norm + ")";
+      flag.style.display = "block";
+    } else {
+      flag.style.display = "none";
+    }
+  }
+  input.addEventListener("input", updateOwnedFlag);
+
+  // Recent-additions list, browser-session scoped.
+  const RECENT_KEY = "bb_recent_lookups";
+  const RECENT_MAX = 50;
+
+  function loadRecent() {
+    try { return JSON.parse(sessionStorage.getItem(RECENT_KEY) || "[]"); }
+    catch (e) { return []; }
+  }
+  function saveRecent(arr) {
+    sessionStorage.setItem(RECENT_KEY, JSON.stringify(arr.slice(0, RECENT_MAX)));
+  }
+  function pushRecent(setNum) {
+    const list = loadRecent().filter(x => x !== setNum);
+    list.unshift(setNum);
+    saveRecent(list);
+  }
+  function renderRecent() {
+    const list = loadRecent();
+    const wrap = document.getElementById("recent-wrap");
+    const chips = document.getElementById("recent-chips");
+    chips.innerHTML = "";
+    if (!list.length) { wrap.style.display = "none"; return; }
+    wrap.style.display = "block";
+    list.forEach(sn => {
+      const a = document.createElement("a");
+      a.href = "/set/" + encodeURIComponent(sn);
+      a.textContent = sn;
+      a.style.cssText =
+        "display:inline-block;padding:0.35rem 0.7rem;background:var(--bb-card);" +
+        "color:var(--bb-yellow);border:1px solid #2A3140;border-radius:0.3rem;" +
+        "font-size:0.85rem;text-decoration:none;flex:0 0 auto;" +
+        "font-family:'Russo One',sans-serif;letter-spacing:0.03em;";
+      chips.appendChild(a);
+    });
+  }
+
+  // After a successful "Add to inventory" we land back here with
+  // ?msg=Added+10283-1 — capture that and push into recents.
+  const params = new URLSearchParams(window.location.search);
+  const msg = params.get("msg") || "";
+  const addedMatch = msg.match(/^Added\s+(\S+)/);
+  if (addedMatch) {
+    pushRecent(addedMatch[1]);
+    // Clean the URL so a page refresh doesn't re-push the same set.
+    window.history.replaceState({}, "", "/lookup");
+  }
+
+  renderRecent();
+  updateOwnedFlag();
+</script>
 {% endblock %}
